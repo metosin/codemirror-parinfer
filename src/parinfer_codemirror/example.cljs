@@ -1,20 +1,9 @@
 (ns parinfer-codemirror.example
-  (:require
-   [clojure.string :refer [join]]
-   cljsjs.codemirror
-   cljsjs.codemirror.addon.selection.active-line
-   cljsjs.codemirror.addon.edit.matchbrackets
-   parinfer-codemirror.clojure-parinfer-mode
-   [parinfer-codemirror.editor :refer [start-editor-sync! parinferize!]]
-   [parinfer-codemirror.state :refer [state
-                                      empty-editor-state]]
-   [parinfer-codemirror.editor-support :refer [update-cursor!
-                                               fix-text!
-                                               cm-key
-                                               IEditor
-                                               get-prev-state
-                                               frame-updated?
-                                               set-frame-updated!]]))
+  (:require cljsjs.codemirror
+            cljsjs.codemirror.addon.selection.active-line
+            cljsjs.codemirror.addon.edit.matchbrackets
+            parinfer-codemirror.clojure-parinfer-mode
+            [parinfer-codemirror.editor :refer [parinferize!]]))
 
 (defn on-tab
   "Indent selection or insert two spaces when tab is pressed.
@@ -32,36 +21,42 @@
    :extraKeys {:Tab on-tab
                :Shift-Tab "indentLess"}})
 
-(defn create-regular-editor!
-  "Create a non-parinfer editor."
-  ([element-id] (create-regular-editor! element-id {}))
-  ([element-id opts]
-   (let [element (js/document.getElementById element-id)]
-     (when-not (= "none" (.. element -style -display))
-       (let [cm (js/CodeMirror.fromTextArea element (clj->js (merge editor-opts {:mode "clojure"} opts)))
-             wrapper (.getWrapperElement cm)]
-         (set! (.-id wrapper) (str "cm-" element-id))
-         cm)))))
-
 (defn create-editor!
   "Create a parinfer editor."
-  ([element-id key-] (create-editor! element-id key- {}))
-  ([element-id key- opts]
-   (when-not (get @state key-)
-     (let [element (js/document.getElementById element-id)
-           cm (js/CodeMirror.fromTextArea element (clj->js (merge editor-opts opts)))
-           wrapper (.getWrapperElement cm)
-           ]
+  ([el] (create-editor! el nil))
+  ;; codemirror opts vs. parinfer opts
+  ([el {:keys [parinfer-mode]
+        :or {parinfer-mode :indent-mode}
+        :as opts}]
+   (let [cm (js/CodeMirror.fromTextArea el (clj->js (merge editor-opts opts)))]
 
-       (set! (.-id wrapper) (str "cm-" element-id))
+     (parinferize! cm parinfer-mode)
 
-       (parinferize! cm key- (:parinfer-mode opts) "")
+     cm)))
 
-       cm))))
+(def text (atom nil))
+
+(defonce cm1 (atom nil))
+(defonce cm2 (atom nil))
 
 (defn render-dev! []
-  (create-editor! "code-indent-mode" :indent-mode)
-  (create-editor! "code-paren-mode" :paren-mode {:parinfer-mode :paren-mode})
-  (start-editor-sync!))
+  (let [el1 (js/document.getElementById "code-indent-mode")
+        el2 (js/document.getElementById "code-paren-mode")]
+
+    (swap! cm1 (fn [cm]
+                 (if cm (.toTextArea cm))
+                 (create-editor! el1)))
+    (swap! cm2 (fn [cm]
+                 (if cm (.toTextArea cm))
+                 (create-editor! el2 {:parinfer-mode :paren-mode})))
+
+    (.on @cm1 "change" (fn [cm change]
+                         (when (not= "setValue" (.-origin change))
+                           (reset! text (.getValue cm))
+                           (.setValue @cm2 (.getValue cm)))))
+    (.on @cm2 "change" (fn [cm change]
+                         (when (not= "setValue" (.-origin change))
+                           (reset! text (.getValue cm))
+                           (.setValue @cm1 (.getValue cm)))))))
 
 (render-dev!)

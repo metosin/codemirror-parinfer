@@ -1,15 +1,7 @@
 (ns parinfer-codemirror.editor-support
   "Connects parinfer mode functions to CodeMirror"
   (:require [clojure.string :as string :refer [join]]
-            [parinfer-cljs.core :as parinfer-cljs]
-            [parinfer-codemirror.state :refer [state]]))
-
-(defprotocol IEditor
-  "Custom data/methods for a CodeMirror editor."
-  (cm-key [this])
-  (get-prev-state [this])
-  (frame-updated? [this])
-  (set-frame-updated! [this value]))
+            [parinfer-cljs.core :as parinfer-cljs]))
 
 ;;----------------------------------------------------------------------
 ;; Operations
@@ -82,12 +74,10 @@
 
 (defn fix-text!
   "Correctly format the text from the given editor."
-  [cm & {:keys [change]
-         :or {change nil}}]
-  (let [;; get the current state of the editor
-        ;; (e.g. text, cursor, selections, scroll)
-
-        current-text (.getValue cm)
+  [cm {:keys [mode change]
+       :or {change nil
+            mode :indent-mode}}]
+  (let [current-text (.getValue cm)
         selection? (.somethingSelected cm)
         selections (.listSelections cm)
         cursor (.getCursor cm)
@@ -99,18 +89,10 @@
                  :cursor-x (.-ch cursor)
                  :cursor-dx (compute-cursor-dx cursor change)}
 
-        key- (cm-key cm)
-        mode (or (get-in @state [key- :mode]) :indent-mode)
-
-        prev-state (get-prev-state cm)
-
-        ;; format the text
         new-text
         (case mode
           :indent-mode
           (let [result (parinfer-cljs/indent-mode current-text options)]
-            (when (:valid? result)
-              (reset! prev-state (:state result)))
             (:text result))
 
           :paren-mode
@@ -120,11 +102,12 @@
           nil)]
 
     ;; update the text
-    (swap! state assoc-in [key- :text] new-text)
+    (.setValue cm new-text)
 
     ;; restore the selection, cursor, and scroll
     ;; since these are reset when overwriting codemirror's value.
     (if selection?
       (.setSelections cm selections)
       (.setCursor cm cursor))
+
     (.scrollTo cm scroll-x scroll-y)))
