@@ -1,4 +1,4 @@
-(defproject codemirror-parinfer "0.0-SNAPSHOT"
+(defproject metosin/codemirror-parinfer "0.0-SNAPSHOT"
   :description "site for illustrating the value of Parinfer"
   :url "http://shaunlebron.github.io/parinfer"
 
@@ -6,12 +6,13 @@
             :url "https://github.com/shaunlebron/parinfer/blob/master/LICENSE.md"
             :distribution :repo}
 
-  :dependencies [[org.clojure/clojure "1.7.0"]
-                 [org.clojure/clojurescript "1.7.122"]
-                 [parinfer "0.2.3"]]
+  :dependencies [[org.clojure/clojure "1.8.0"]
+                 [org.clojure/clojurescript "1.9.562"]
+                 [parinfer-cljs "1.5.1-0"]
+                 [cljsjs/parinfer "2.0.0-0"]]
 
-  :plugins [[lein-cljsbuild "1.1.0"]
-            [lein-figwheel "0.4.0"]]
+  :plugins [[lein-cljsbuild "1.1.6"]
+            [lein-figwheel "0.5.10"]]
 
   :source-paths []
 

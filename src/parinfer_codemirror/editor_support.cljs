@@ -1,11 +1,8 @@
 (ns parinfer-codemirror.editor-support
   "Connects parinfer mode functions to CodeMirror"
-  (:require
-    [clojure.string :as string :refer [join]]
-    [parinfer.indent-mode :as indent-mode]
-    [parinfer.paren-mode :as paren-mode]
-    [parinfer-codemirror.state :refer [state]]))
-
+  (:require [clojure.string :as string :refer [join]]
+            [parinfer-cljs.core :as parinfer-cljs]
+            [parinfer-codemirror.state :refer [state]]))
 
 (defprotocol IEditor
   "Custom data/methods for a CodeMirror editor."
@@ -119,19 +116,20 @@
         new-text
         (case mode
           :indent-mode
-          (let [result (if (and use-cache? @prev-state)
-                        (indent-mode/format-text-change
-                          current-text
-                          @prev-state
-                          (compute-cm-change cm change options @prev-state)
-                          options)
-                        (indent-mode/format-text current-text options))]
+          (let [result ;(if (and use-cache? @prev-state)
+                        ; (indent-mode/format-text-change
+                        ;   current-text
+                        ;   @prev-state
+                        ;   (compute-cm-change cm change options @prev-state)
+                        ;   options)
+                        (parinfer-cljs/indent-mode current-text options);)
+                        ]
             (when (:valid? result)
               (reset! prev-state (:state result)))
             (:text result))
 
           :paren-mode
-          (let [result (paren-mode/format-text current-text options)]
+          (let [result (parinfer-cljs/paren-mode current-text options)]
             (:text result))
 
           nil)]
