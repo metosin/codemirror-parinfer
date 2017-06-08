@@ -1,6 +1,10 @@
 (ns parinfer-codemirror.example
   (:require
    [clojure.string :refer [join]]
+   cljsjs.codemirror
+   cljsjs.codemirror.addon.selection.active-line
+   cljsjs.codemirror.addon.edit.matchbrackets
+   parinfer-codemirror.clojure-parinfer-mode
    [parinfer-codemirror.editor :refer [start-editor-sync! parinferize!]]
    [parinfer-codemirror.state :refer [state
                                       empty-editor-state]]
@@ -56,8 +60,8 @@
        cm))))
 
 (defn render-dev! []
-    (create-editor! "code-indent-mode" :indent-mode)
-    (create-editor! "code-paren-mode" :paren-mode {:parinfer-mode :paren-mode})
-    (start-editor-sync!))
+  (create-editor! "code-indent-mode" :indent-mode)
+  (create-editor! "code-paren-mode" :paren-mode {:parinfer-mode :paren-mode})
+  (start-editor-sync!))
 
 (render-dev!)

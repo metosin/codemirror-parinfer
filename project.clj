@@ -9,6 +9,7 @@
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/clojurescript "1.9.562"]
                  [parinfer-cljs "1.5.1-0"]
+                 [cljsjs/codemirror "5.24.0-1"]
                  [cljsjs/parinfer "2.0.0-0"]]
 
   :plugins [[lein-cljsbuild "1.1.6"]

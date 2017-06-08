@@ -9,8 +9,7 @@
   (cm-key [this])
   (get-prev-state [this])
   (frame-updated? [this])
-  (set-frame-updated! [this value])
-  #_(record-change! [this thing]))
+  (set-frame-updated! [this value]))
 
 ;;----------------------------------------------------------------------
 ;; Operations
@@ -54,20 +53,13 @@
 (defn compute-cursor-dx
   [cursor change]
   (when change
-    (let [;; This is a hack for codemirror.
-          ;; For some reason codemirror triggers an "+input" change after the
-          ;; indent spaces are already applied.  So I modified codemirror to
-          ;; label these changes as +indenthack so we can ignore them.
-          ignore? (= "+indenthack" (.-origin change))]
-      (if ignore?
-        0
-        (let [start-x (.. change -to -ch)
-              new-lines (.. change -text)
-              len-last-line (count (last new-lines))
-              end-x (if (> (count new-lines) 1)
-                      len-last-line
-                      (+ len-last-line (.. change -from -ch)))]
-          (- end-x start-x))))))
+    (let [start-x (.. change -to -ch)
+          new-lines (.. change -text)
+          len-last-line (count (last new-lines))
+          end-x (if (> (count new-lines) 1)
+                  len-last-line
+                  (+ len-last-line (.. change -from -ch)))]
+      (- end-x start-x))))
 
 (defn compute-cm-change
   [cm change options prev-state]
@@ -90,8 +82,8 @@
 
 (defn fix-text!
   "Correctly format the text from the given editor."
-  [cm & {:keys [change use-cache?]
-         :or {change nil, use-cache? false}}]
+  [cm & {:keys [change]
+         :or {change nil}}]
   (let [;; get the current state of the editor
         ;; (e.g. text, cursor, selections, scroll)
 
@@ -116,14 +108,7 @@
         new-text
         (case mode
           :indent-mode
-          (let [result ;(if (and use-cache? @prev-state)
-                        ; (indent-mode/format-text-change
-                        ;   current-text
-                        ;   @prev-state
-                        ;   (compute-cm-change cm change options @prev-state)
-                        ;   options)
-                        (parinfer-cljs/indent-mode current-text options);)
-                        ]
+          (let [result (parinfer-cljs/indent-mode current-text options)]
             (when (:valid? result)
               (reset! prev-state (:state result)))
             (:text result))
