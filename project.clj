@@ -1,4 +1,4 @@
-(defproject metosin/codemirror-parinfer "0.0-SNAPSHOT"
+(defproject metosin/codemirror-parinfer "0.1.0-SNAPSHOT"
   :description "site for illustrating the value of Parinfer"
   :url "http://shaunlebron.github.io/parinfer"
 
@@ -15,29 +15,25 @@
   :plugins [[lein-cljsbuild "1.1.6"]
             [lein-figwheel "0.5.10"]]
 
-  :source-paths []
-
-  :clean-targets ^{:protect false} ["resources/public/js/compiled/out" "target"]
+  :profiles {:dev {:resource-paths ["example-resources" "target/cljs-dev"]}}
 
   :cljsbuild {
     :test-commands {"test" ["node" "resources/public/js/compiled/parinfer-test.js"]}
     :builds [{:id "dev"
-              :source-paths ["src"]
+              :source-paths ["src" "example-src"]
               :figwheel {:on-jsload "parinfer-codemirror.example/on-js-reload" }
               :compiler {:main parinfer-codemirror.example
                          :asset-path "js/compiled/out"
-                         :output-to "resources/public/js/compiled/parinfer.js"
-                         :output-dir "resources/public/js/compiled/out"
-                         :source-map-timestamp true }}
+                         :output-to "target/cljs-dev/public/js/compiled/parinfer.js"
+                         :output-dir "target/cljs-dev/public/js/compiled/out"
+                         :source-map-timestamp true}}
              {:id "min"
-              :source-paths ["src"]
-              :compiler {:output-to "resources/public/js/compiled/parinfer.js"
-                         :externs ["resources/public/codemirror/lib/closure-externs.js"]
-                         :main      parinfer-codemirror.example
+              :source-paths ["src" "example-src"]
+              :compiler {:output-to "target/cljs-adv/public/js/compiled/parinfer.js"
+                         :externs ["target/cljs-adv/public/codemirror/lib/closure-externs.js"]
+                         :main parinfer-codemirror.example
                          :optimizations :advanced
-                         :pretty-print false}}
-
-             ]}
+                         :pretty-print false}}]}
 
   :figwheel {
              ;; :http-server-root "public" ;; default and assumes "resources"

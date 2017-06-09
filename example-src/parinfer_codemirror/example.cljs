@@ -1,25 +1,5 @@
 (ns parinfer-codemirror.example
-  (:require cljsjs.codemirror
-            cljsjs.codemirror.addon.selection.active-line
-            cljsjs.codemirror.addon.edit.matchbrackets
-            parinfer-codemirror.clojure-parinfer-mode
-            [parinfer-codemirror.editor :refer [parinferize!]]))
-
-(defn on-tab
-  "Indent selection or insert two spaces when tab is pressed.
-  from: https://github.com/codemirror/CodeMirror/issues/988#issuecomment-14921785"
-  [cm]
-  (if (.somethingSelected cm)
-    (.indentSelection cm)
-    (let [n (.getOption cm "indentUnit")
-          spaces (apply str (repeat n " "))]
-      (.replaceSelection cm spaces))))
-
-(def editor-opts
-  {:mode "clojure-parinfer"
-   :matchBrackets true
-   :extraKeys {:Tab on-tab
-               :Shift-Tab "indentLess"}})
+  (:require [parinfer-codemirror.editor :as editor]))
 
 (defn create-editor!
   "Create a parinfer editor."
@@ -28,9 +8,11 @@
   ([el {:keys [parinfer-mode]
         :or {parinfer-mode :indent-mode}
         :as opts}]
-   (let [cm (js/CodeMirror.fromTextArea el (clj->js (merge editor-opts opts)))]
+   (let [cm (js/CodeMirror.fromTextArea el (clj->js (merge editor/default-opts opts)))]
 
-     (parinferize! cm parinfer-mode)
+     (.on cm "change" (partial editor/on-change parinfer-mode))
+     (.on cm "beforeChange" editor/before-change)
+     (.on cm "cursorActivity" (partial editor/on-cursor-activity parinfer-mode))
 
      cm)))
 

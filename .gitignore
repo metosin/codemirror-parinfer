@@ -1,4 +1,4 @@
-/resources/public/js/compiled/**
 /deploy
 /target
 *.log
+pom.xml
